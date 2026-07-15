@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Totals {
+  id                Int @id @default(autoincrement())
+  totalAppointments Int
+  totalPatient      Int
+  totalRevenue      Int
+}
+
+model Doctor {
+  id               Int           @id @default(autoincrement())
+  name             String
+  notAvailableDate DateTime?
+  appointments     Appointment[]
+}
+
+model Appointment {
+  id            Int       @id @default(autoincrement())
+  appointmentId String    @unique
+  doctorId      Int
+  patientId     Int
+  patientName   String
+  location      String
+  timestamp     DateTime
+  timeSlot      String
+  phone         String
+  fees          Int
+  rzpTxnId      String?   @unique
+
+  doctor  Doctor  @relation(fields: [doctorId], references: [id])
+  patient Patient @relation(fields: [patientId], references: [id])
+}
+
+model Patient {
+  id           Int           @id @default(autoincrement())
+  name         String
+  phone        String        @unique
+  firstVisit   DateTime
+  lastVisit    DateTime
+  appointments Appointment[]
+}
+
+enum Role {
+  admin
+  doctor
+  reception
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  username String @unique
+  password String
+  role     Role   @default(doctor)
+}
+
+model Feedback {
+  id          Int      @id @default(autoincrement())
+  doctorName  String
+  date        DateTime
+  patientName String
+  phone       String
+  feedback    String
+}
+
+model CallLog {
+  id                 Int       @id @default(autoincrement())
+  callID             String    @unique
+
+  sourceNumber       String?
+  destinationNumber  String?
+  displayNumber      String?
+
+  direction          String?
+  callType           String?
+  leg                String?
+
+  status             String?
+  agentStatus        String?
+
+  startTime          DateTime?
+  endTime            DateTime?
+  duration           Int?      // seconds
+
+  accountID          String?
+  eventID            String?
+
+  resourceURL        String?   @db.Text
+  dtmf               String?
+
+  callBackParentID   String?
+  callBackParams     Json?
+
+  dataSource         String?   @default("Bonvoice")
+  rawPayload         Json?
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([callID])
+  @@index([sourceNumber])
+  @@index([destinationNumber])
+  @@index([direction])
+  @@index([status])
+  @@index([agentStatus])
+  @@index([startTime])
+  @@index([callType])
+}
