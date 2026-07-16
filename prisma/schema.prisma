@@ -112,3 +112,11 @@ model CallLog {
   @@index([startTime])
   @@index([callType])
 }
+
+model ChatWebhook {
+  id        Int      @id @default(autoincrement())
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
