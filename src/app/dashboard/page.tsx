@@ -1,9 +1,9 @@
+"use client";
+
 import { CalendarDays, ClipboardList, Users, IndianRupee } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { useStats } from "@/hooks/use-api";
 import { DoctorCard } from "@/components/doctor-card";
 import { StatCard } from "@/components/stat-card";
-
-export const dynamic = "force-dynamic";
 
 const doctors = [
   "Dr. Gaurav Bhargava",
@@ -11,18 +11,8 @@ const doctors = [
   "Dr. R R Bhargava",
 ];
 
-export default async function DashboardPage() {
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(startOfDay);
-  endOfDay.setDate(endOfDay.getDate() + 1);
-
-  const [todayAppointments, totals] = await Promise.all([
-    prisma.appointment.count({
-      where: { timestamp: { gte: startOfDay, lt: endOfDay } },
-    }),
-    prisma.totals.findFirst(),
-  ]);
+export default function DashboardPage() {
+  const { data: stats, isLoading } = useStats();
 
   return (
     <div className="space-y-6">
@@ -35,25 +25,25 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-3">
         <StatCard
           title="Today's Appointments"
-          value={todayAppointments}
+          value={isLoading ? "..." : (stats?.todayAppointments ?? 0)}
           icon={<CalendarDays className="size-6" />}
           color="blue"
         />
         <StatCard
           title="Total Appointments"
-          value={totals?.totalAppointments ?? 0}
+          value={isLoading ? "..." : (stats?.totalAppointments ?? 0)}
           icon={<ClipboardList className="size-6" />}
           color="emerald"
         />
         <StatCard
           title="Total Patients"
-          value={totals?.totalPatient ?? 0}
+          value={isLoading ? "..." : (stats?.totalPatient ?? 0)}
           icon={<Users className="size-6" />}
           color="violet"
         />
         <StatCard
           title="Total Revenue"
-          value={`₹${(totals?.totalRevenue ?? 0).toLocaleString()}`}
+          value={isLoading ? "..." : `₹${(stats?.totalRevenue ?? 0).toLocaleString()}`}
           icon={<IndianRupee className="size-6" />}
           color="rose"
         />
