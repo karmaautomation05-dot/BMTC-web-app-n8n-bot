@@ -82,3 +82,37 @@ export const getCallLogs = (params: Record<string, string> = {}) => {
   const qs = new URLSearchParams(params).toString();
   return request<PaginatedResponse<CallLog>>(`/call-logs${qs ? "?" + qs : ""}`);
 };
+
+// --- Payments ---
+
+export interface RazorpayPayment {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  method: string;
+  description: string | null;
+  email: string | null;
+  contact: string | null;
+  created_at: number;
+  fee: number | null;
+  tax: number | null;
+  error_description: string | null;
+  card_id: string | null;
+  bank: string | null;
+  order_id: string | null;
+  invoice_id: string | null;
+}
+
+export interface RazorpayPaymentsResponse {
+  items: RazorpayPayment[];
+  count: number;
+  totalAmount: number;
+  page: number;
+  perPage: number;
+}
+
+export const getPayments = (params: Record<string, string> = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return request<RazorpayPaymentsResponse>(`/payments${qs ? "?" + qs : ""}`);
+};

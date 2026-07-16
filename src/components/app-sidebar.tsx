@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Phone,
+  Wallet,
   LogOut,
   ChevronLeft,
   Moon,
@@ -22,6 +23,7 @@ import { useEffect, useState } from "react";
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { label: "Call Logs", href: "/dashboard/call-logs", icon: Phone },
+  { label: "Payments", href: "/dashboard/payments", icon: Wallet },
 ];
 
 function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {

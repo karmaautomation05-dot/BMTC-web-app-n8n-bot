@@ -11,3 +11,10 @@ export function useCallLogs(params: Record<string, string> = {}) {
     queryFn: () => api.getCallLogs(params),
   });
 }
+
+export function usePayments(params: Record<string, string> = {}) {
+  return useQuery({
+    queryKey: ["payments", params],
+    queryFn: () => api.getPayments(params),
+  });
+}
