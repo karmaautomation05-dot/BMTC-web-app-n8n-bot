@@ -35,10 +35,22 @@ export interface CallLog {
   callID: string;
   sourceNumber: string | null;
   destinationNumber: string | null;
+  displayNumber: string | null;
   direction: string | null;
+  callType: string | null;
+  leg: string | null;
   status: string | null;
+  agentStatus: string | null;
   startTime: string | null;
+  endTime: string | null;
   duration: number | null;
+  accountID: string | null;
+  eventID: string | null;
+  resourceURL: string | null;
+  dtmf: string | null;
+  callBackParentID: string | null;
+  callBackParams: Record<string, unknown> | null;
+  dataSource: string | null;
   createdAt: string;
 }
 

@@ -36,13 +36,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const startTime = body.StartTime
-      ? new Date(body.StartTime)
-      : null;
+    function parseBonvoiceTime(val: string | null) {
+      if (!val) return null;
+      if (/[Z+-]/.test(val)) return new Date(val);
+      return new Date(val.replace(" ", "T") + "+05:30");
+    }
 
-    const endTime = body.EndTime
-      ? new Date(body.EndTime)
-      : null;
+    const startTime = parseBonvoiceTime(body.StartTime);
+    const endTime = parseBonvoiceTime(body.EndTime);
 
     let duration: number | null = null;
 
