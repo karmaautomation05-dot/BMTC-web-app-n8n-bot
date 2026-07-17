@@ -9,8 +9,8 @@ import { useAuth } from "@/stores/auth";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
-  Phone,
   Wallet,
+  BarChart3,
   LogOut,
   ChevronLeft,
   Moon,
@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Call Logs", href: "/dashboard/call-logs", icon: Phone },
+  { label: "Stats", href: "/dashboard/stats", icon: BarChart3 },
   { label: "Payments", href: "/dashboard/payments", icon: Wallet },
 ];
 
