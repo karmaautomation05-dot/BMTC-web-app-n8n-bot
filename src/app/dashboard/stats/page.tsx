@@ -39,6 +39,7 @@ function statusColor(s: string | null) {
     connected: "bg-emerald-500",
     missed: "bg-red-500",
     "no answer": "bg-red-500",
+    noanswer: "bg-red-500",
     failed: "bg-red-500",
     busy: "bg-red-500",
     ongoing: "bg-amber-500",

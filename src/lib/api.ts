@@ -134,3 +134,26 @@ export interface ChatStats {
 }
 
 export const getChatStats = () => request<ChatStats>("/chat-stats");
+
+// --- Appointments ---
+
+export interface Appointment {
+  id: number;
+  appointmentId: string;
+  doctorId: number;
+  patientId: number;
+  patientName: string;
+  location: string;
+  timestamp: string;
+  timeSlot: string;
+  phone: string;
+  fees: number;
+  rzpTxnId: string | null;
+  doctor: { id: number; name: string };
+  patient: { id: number; name: string; phone: string };
+}
+
+export const getAppointments = (params: Record<string, string> = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return request<PaginatedResponse<Appointment>>(`/appointments${qs ? "?" + qs : ""}`);
+};

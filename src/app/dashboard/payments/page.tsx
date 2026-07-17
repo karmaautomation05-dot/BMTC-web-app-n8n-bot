@@ -52,13 +52,15 @@ export default function PaymentsPage() {
     return filtered.slice(start, start + PER_PAGE);
   }, [filtered, page]);
 
-  const filteredAmount = useMemo(() => {
-    let sum = 0;
-    for (const p of filtered) {
-      if (p.status === "captured") sum += p.amount;
+  const netAmount = useMemo(() => {
+    let captured = 0;
+    let refunded = 0;
+    for (const p of allPayments) {
+      if (p.status === "captured") captured += p.amount;
+      else if (p.status === "refunded") refunded += p.amount;
     }
-    return sum;
-  }, [filtered]);
+    return captured - refunded;
+  }, [allPayments]);
 
   const [selected, setSelected] = useState<RazorpayPayment | null>(null);
 
@@ -66,17 +68,13 @@ export default function PaymentsPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Payments</h1>
-        <div className="flex items-center gap-2">
-          {!!filtered.length && (
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">
-                {filtered.length} txns ·
-              </span>
-              <span className="font-semibold">
-                {formatRupees(filteredAmount)}
-              </span>
-            </div>
-          )}
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">
+            {filtered.length} txns
+          </span>
+          <span className="text-sm">
+            Net: <span className="font-semibold">{formatRupees(netAmount)}</span>
+          </span>
         </div>
       </div>
 

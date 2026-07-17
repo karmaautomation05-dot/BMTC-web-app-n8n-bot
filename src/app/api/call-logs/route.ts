@@ -29,17 +29,17 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    const inbound = directionCounts.find((d) => d.direction === "inbound")?._count.direction ?? 0;
-    const outbound = directionCounts.find((d) => d.direction === "outbound")?._count.direction ?? 0;
+    const inbound = directionCounts.find((d) => d.direction?.toLowerCase() === "inbound")?._count.direction ?? 0;
+    const outbound = directionCounts.find((d) => d.direction?.toLowerCase() === "outbound")?._count.direction ?? 0;
 
     const answeredStatuses = ["answered", "completed", "connected"];
     const answered = statusCounts
-      .filter((s) => answeredStatuses.includes(s.status ?? ""))
+      .filter((s) => answeredStatuses.includes(s.status?.toLowerCase() ?? ""))
       .reduce((sum, s) => sum + s._count.status, 0);
 
-    const missedStatuses = ["missed", "no answer", "failed", "busy"];
+    const missedStatuses = ["missed", "no answer", "noanswer", "failed", "busy"];
     const missed = statusCounts
-      .filter((s) => missedStatuses.includes(s.status ?? ""))
+      .filter((s) => missedStatuses.includes(s.status?.toLowerCase() ?? ""))
       .reduce((sum, s) => sum + s._count.status, 0);
 
     return NextResponse.json({
