@@ -113,10 +113,12 @@ model CallLog {
   @@index([callType])
 }
 
-model ChatWebhook {
-  id        Int      @id @default(autoincrement())
-  payload   Json
-  createdAt DateTime @default(now())
-
-  @@index([createdAt])
+model MessageStats {
+  id        Int      @id @default(1)
+  inbound   Int      @default(0)
+  outbound  Int      @default(0)
+  sent      Int      @default(0)
+  delivered Int      @default(0)
+  read      Int      @default(0)
+  updatedAt DateTime @updatedAt
 }

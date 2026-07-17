@@ -18,3 +18,11 @@ export function usePayments(params: Record<string, string> = {}) {
     queryFn: () => api.getPayments(params),
   });
 }
+
+export function useChatStats() {
+  return useQuery({
+    queryKey: ["chat-stats"],
+    queryFn: api.getChatStats,
+    refetchInterval: 10_000,
+  });
+}

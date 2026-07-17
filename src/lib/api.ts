@@ -27,7 +27,6 @@ export interface Stats {
   todayAppointments: number;
   totalAppointments: number;
   totalPatient: number;
-  totalRevenue: number;
 }
 
 export interface CallLog {
@@ -61,6 +60,13 @@ export interface PaginatedResponse<T> {
     limit: number;
     total: number;
     totalPages: number;
+  };
+  stats?: {
+    inbound: number;
+    outbound: number;
+    answered: number;
+    missed: number;
+    total: number;
   };
 }
 
@@ -116,3 +122,15 @@ export const getPayments = (params: Record<string, string> = {}) => {
   const qs = new URLSearchParams(params).toString();
   return request<RazorpayPaymentsResponse>(`/payments${qs ? "?" + qs : ""}`);
 };
+
+// --- Chat Stats ---
+
+export interface ChatStats {
+  inbound: number;
+  outbound: number;
+  sent: number;
+  delivered: number;
+  read: number;
+}
+
+export const getChatStats = () => request<ChatStats>("/chat-stats");
