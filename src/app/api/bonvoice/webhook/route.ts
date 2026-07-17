@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     function parseBonvoiceTime(val: string | null) {
       if (!val) return null;
-      if (/[Z+-]/.test(val)) return new Date(val);
+      if (val.length > 19) return new Date(val);
       return new Date(val.replace(" ", "T") + "+05:30");
     }
 

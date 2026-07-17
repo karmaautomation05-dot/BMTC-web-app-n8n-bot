@@ -107,25 +107,25 @@ export default function PaymentsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-muted/50 border-b text-left text-muted-foreground">
-              <th className="px-4 py-3 font-medium">ID</th>
+              <th className="hidden md:table-cell px-4 py-3 font-medium">ID</th>
               <th className="px-4 py-3 font-medium">Amount</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Method</th>
-              <th className="px-4 py-3 font-medium">Contact</th>
-              <th className="px-4 py-3 font-medium">Email</th>
+              <th className="hidden md:table-cell px-4 py-3 font-medium">Contact</th>
+              <th className="hidden md:table-cell px-4 py-3 font-medium">Email</th>
               <th className="px-4 py-3 font-medium">Date</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+                <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground">
                   Loading...
                 </td>
               </tr>
             ) : !filtered.length ? (
               <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+                <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground">
                   No {statusFilter === "all" ? "" : statusFilter} payments found
                 </td>
               </tr>
@@ -136,7 +136,7 @@ export default function PaymentsPage() {
                   onClick={() => setSelected(p)}
                   className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
                 >
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground max-w-[140px] truncate" title={p.id}>
+                  <td className="hidden md:table-cell px-4 py-3 font-mono text-xs text-muted-foreground max-w-[140px] truncate" title={p.id}>
                     {p.id}
                   </td>
                   <td className="px-4 py-3 font-medium">
@@ -149,8 +149,8 @@ export default function PaymentsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 capitalize">{p.method ?? "—"}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{p.contact ?? "—"}</td>
-                  <td className="px-4 py-3 text-xs">{p.email ?? "—"}</td>
+                  <td className="hidden md:table-cell px-4 py-3 font-mono text-xs">{p.contact ?? "—"}</td>
+                  <td className="hidden md:table-cell px-4 py-3 text-xs">{p.email ?? "—"}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     {new Date(p.created_at * 1000).toLocaleString("en-IN", {
                       day: "2-digit", month: "2-digit", year: "numeric",
