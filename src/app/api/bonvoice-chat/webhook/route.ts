@@ -44,6 +44,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    await prisma.chatWebhook.create({
+      data: { rawPayload: body },
+    });
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error(error);

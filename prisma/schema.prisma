@@ -122,3 +122,9 @@ model MessageStats {
   read      Int      @default(0)
   updatedAt DateTime @updatedAt
 }
+
+model ChatWebhook {
+  id          Int      @id @default(autoincrement())
+  rawPayload  Json
+  createdAt   DateTime @default(now())
+}
