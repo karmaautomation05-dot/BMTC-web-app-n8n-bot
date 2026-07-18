@@ -2,6 +2,100 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAuth } from "@/lib/auth";
 
+function parseTimeSlotStart(slot: string): { hour: number; minute: number } | null {
+  const m = slot.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!m) return null;
+  let h = parseInt(m[1]);
+  const min = parseInt(m[2]);
+  if (m[3].toUpperCase() === "PM" && h !== 12) h += 12;
+  if (m[3].toUpperCase() === "AM" && h === 12) h = 0;
+  return { hour: h, minute: min };
+}
+
+function isUpcoming(timestamp: Date, timeSlot: string): boolean {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrowStart = new Date(todayStart);
+  tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+
+  if (timestamp < todayStart || timestamp >= tomorrowStart) return false;
+
+  const slot = parseTimeSlotStart(timeSlot);
+  if (!slot) return false;
+
+  const slotTime = new Date(todayStart);
+  slotTime.setHours(slot.hour, slot.minute, 0, 0);
+  return slotTime > now;
+}
+
+export async function GET(req: NextRequest) {
+  const authError = verifyAuth(req);
+  if (authError) return authError;
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
+    const limit = Math.min(100, parseInt(searchParams.get("limit") ?? "50"));
+    const skip = (page - 1) * limit;
+    const filter = searchParams.get("filter") || "upcoming";
+    const search = searchParams.get("search") || "";
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrowStart = new Date(todayStart);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+
+    const where: Record<string, unknown> = {};
+    const and: Record<string, unknown>[] = [];
+
+    if (filter === "today") {
+      and.push({ timestamp: { gte: todayStart, lt: tomorrowStart } });
+    } else if (filter === "upcoming") {
+      and.push({ timestamp: { gte: todayStart, lt: tomorrowStart } });
+    } else if (filter && /^\d{4}-\d{2}-\d{2}$/.test(filter)) {
+      const dayStart = new Date(filter + "T00:00:00+05:30");
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+      and.push({ timestamp: { gte: dayStart, lt: dayEnd } });
+    }
+
+    if (search) {
+      and.push({
+        OR: [
+          { patientName: { contains: search, mode: "insensitive" } },
+          { appointmentId: { contains: search, mode: "insensitive" } },
+        ],
+      });
+    }
+
+    if (and.length) where.AND = and;
+
+    const [appointments, total] = await Promise.all([
+      prisma.appointment.findMany({
+        where: where as any,
+        skip,
+        take: limit,
+        orderBy: { timestamp: "desc" },
+        include: { doctor: true, patient: true },
+      }),
+      prisma.appointment.count({ where: where as any }),
+    ]);
+
+    let data = appointments;
+    if (filter === "upcoming") {
+      data = appointments.filter((a) => isUpcoming(a.timestamp, a.timeSlot));
+    }
+
+    return NextResponse.json({
+      data,
+      pagination: { page, limit, total: filter === "upcoming" ? data.length : total, totalPages: filter === "upcoming" ? 1 : Math.ceil(total / limit) },
+    });
+  } catch (err) {
+    console.error("Appointments error:", err);
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+  }
+}
+
 export async function POST(req: NextRequest) {
   const authError = verifyAuth(req);
   if (authError) return authError;
