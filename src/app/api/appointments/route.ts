@@ -12,20 +12,25 @@ function parseTimeSlotStart(slot: string): { hour: number; minute: number } | nu
   return { hour: h, minute: min };
 }
 
-function isUpcoming(timestamp: Date, timeSlot: string): boolean {
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const tomorrowStart = new Date(todayStart);
-  tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+const IST_MS = 5.5 * 60 * 60 * 1000;
 
-  if (timestamp < todayStart || timestamp >= tomorrowStart) return false;
+function isUpcoming(timestamp: Date, timeSlot: string): boolean {
+  const nowMs = Date.now();
+  const istDate = new Date(nowMs + IST_MS);
+  const y = istDate.getUTCFullYear();
+  const m = istDate.getUTCMonth();
+  const d = istDate.getUTCDate();
+  const todayStartMs = Date.UTC(y, m, d) - IST_MS;
+  const tomorrowStartMs = todayStartMs + 24 * 60 * 60 * 1000;
+
+  const tsMs = timestamp.getTime();
+  if (tsMs < todayStartMs || tsMs >= tomorrowStartMs) return false;
 
   const slot = parseTimeSlotStart(timeSlot);
   if (!slot) return false;
 
-  const slotTime = new Date(todayStart);
-  slotTime.setHours(slot.hour, slot.minute, 0, 0);
-  return slotTime > now;
+  const slotMs = todayStartMs + slot.hour * 3600000 + slot.minute * 60000;
+  return slotMs > nowMs;
 }
 
 export async function GET(req: NextRequest) {
@@ -40,10 +45,9 @@ export async function GET(req: NextRequest) {
     const filter = searchParams.get("filter") || "upcoming";
     const search = searchParams.get("search") || "";
 
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tomorrowStart = new Date(todayStart);
-    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+    const istDate = new Date(Date.now() + IST_MS);
+    const todayStart = new Date(Date.UTC(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate()) - IST_MS);
+    const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
     const where: Record<string, unknown> = {};
     const and: Record<string, unknown>[] = [];

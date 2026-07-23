@@ -55,7 +55,9 @@ function InlineLogin({ onLogin }: { onLogin: (token: string) => void }) {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-zinc-900 dark:to-zinc-950">
       <div className="w-full max-w-sm rounded-xl bg-white dark:bg-zinc-900 shadow-xl p-6 space-y-6">
         <div className="text-center space-y-2">
-          <div className="mx-auto size-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">B</div>
+          <div className="mx-auto size-16 rounded-xl flex items-center justify-center overflow-hidden">
+            <img src="/icons/icon-192.png" alt="BMTC" className="size-full object-cover" />
+          </div>
           <h1 className="text-xl font-semibold tracking-tight">BMTC Dashboard</h1>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">

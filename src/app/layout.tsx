@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   description: "BMTC Clinic Management Dashboard",
   manifest: "/manifest.json",
   icons: {
+    icon: "/favicon.ico",
     apple: "/icons/icon-192.png",
   },
   appleWebApp: {

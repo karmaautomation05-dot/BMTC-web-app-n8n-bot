@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { IndianRupee, ClipboardList, Clock, User, Phone, MapPin, Stethoscope, Search, CalendarDays, Filter } from "lucide-react";
-import { cn, fmt, fmtDate } from "@/lib/utils";
+import { cn, fmt } from "@/lib/utils";
 import { useAppointments } from "@/hooks/use-api";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Appointment } from "@/lib/api";
@@ -135,8 +135,7 @@ export default function AppointmentsPage() {
                   <td className="px-4 py-3 font-medium">{formatRupees(a.fees)}</td>
                   <td className="hidden md:table-cell px-4 py-3 font-mono text-xs">{a.phone === "-" ? "—" : a.phone}</td>
                   <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
-                    <span className="hidden md:inline">{fmtDate(a.timestamp, { day: "2-digit", month: "short" })} </span>
-                    <span>{fmt(a.timestamp, { hour: "2-digit", minute: "2-digit", hour12: false })}</span>
+                    {fmt(a.timestamp, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false })}
                   </td>
                 </tr>
               ))

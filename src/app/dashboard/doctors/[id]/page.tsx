@@ -2,16 +2,12 @@
 
 import { useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { Calendar, IndianRupee, Clock, ArrowLeft, Stethoscope, Hash } from "lucide-react";
-import { fmt, fmtDate } from "@/lib/utils";
+import { Calendar, Clock, ArrowLeft, Stethoscope, Hash } from "lucide-react";
+import { fmt } from "@/lib/utils";
 import { useDoctors, useDoctorAppointments, useUpdateDoctor } from "@/hooks/use-api";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import Link from "next/link";
 import type { DoctorAppointment } from "@/lib/api";
-
-function formatRupees(paise: number) {
-  return `₹${paise.toLocaleString("en-IN")}`;
-}
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -113,10 +109,10 @@ export default function DoctorDetailPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-muted/50 border-b text-left text-muted-foreground">
+              <th className="px-4 py-3 font-medium">ID</th>
               <th className="px-4 py-3 font-medium">Patient</th>
               <th className="hidden md:table-cell px-4 py-3 font-medium">Phone</th>
               <th className="px-4 py-3 font-medium">Slot</th>
-              <th className="px-4 py-3 font-medium">Fee</th>
               <th className="hidden md:table-cell px-4 py-3 font-medium">Location</th>
               <th className="px-4 py-3 font-medium">Date</th>
             </tr>
@@ -124,11 +120,11 @@ export default function DoctorDetailPage() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground">Loading...</td>
+                <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">Loading...</td>
               </tr>
             ) : appointments.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground">No appointments found</td>
+                <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">No appointments found</td>
               </tr>
             ) : (
               appointments.map((a) => (
@@ -137,16 +133,17 @@ export default function DoctorDetailPage() {
                   onClick={() => setSelected(a)}
                   className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
                 >
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground max-w-[100px] truncate" title={a.appointmentId}>
+                    {a.appointmentId}
+                  </td>
                   <td className="px-4 py-3 font-medium">{a.patientName}</td>
                   <td className="hidden md:table-cell px-4 py-3 font-mono text-xs">{a.phone === "-" ? "—" : a.phone}</td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">{a.timeSlot}</td>
-                  <td className="px-4 py-3 font-medium">{formatRupees(a.fees)}</td>
                   <td className="hidden md:table-cell px-4 py-3 text-muted-foreground text-xs max-w-[140px] truncate">
                     {a.location}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
-                    <span className="hidden md:inline">{fmtDate(a.timestamp, { day: "2-digit", month: "short" })} </span>
-                    <span>{fmt(a.timestamp, { hour: "2-digit", minute: "2-digit", hour12: false })}</span>
+                    {fmt(a.timestamp, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false })}
                   </td>
                 </tr>
               ))
@@ -182,10 +179,11 @@ export default function DoctorDetailPage() {
           <DialogContent className="sm:max-w-sm">
             <DialogTitle>Appointment Details</DialogTitle>
             <div>
+              <DetailRow label="Appointment ID" value={selected.appointmentId} />
               <DetailRow label="Patient" value={selected.patientName} />
               <DetailRow label="Phone" value={selected.phone === "-" ? "—" : selected.phone} />
               <DetailRow label="Time Slot" value={selected.timeSlot} />
-              <DetailRow label="Fee" value={formatRupees(selected.fees)} />
+              <DetailRow label="Fee" value={`₹${selected.fees.toLocaleString("en-IN")}`} />
               <DetailRow label="Location" value={selected.location} />
               <DetailRow label="Date" value={fmt(selected.timestamp)} />
             </div>
