@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { IndianRupee, ChevronLeft, ChevronRight } from "lucide-react";
+import { IndianRupee, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePayments } from "@/hooks/use-api";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -24,6 +24,7 @@ function formatRupees(paise: number) {
 }
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  if (value == null || value === "") return null;
   return (
     <div className="flex justify-between gap-4 py-1.5 border-b border-border/50 last:border-0">
       <span className="text-muted-foreground shrink-0">{label}</span>
@@ -37,13 +38,17 @@ const STATUSES = ["all", "captured", "failed", "refunded"] as const;
 export default function PaymentsPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const { data, isLoading, error } = usePayments();
   const allPayments = data?.items ?? [];
 
   const filtered = useMemo(() => {
-    if (statusFilter === "all") return allPayments;
-    return allPayments.filter((p) => p.status === statusFilter);
-  }, [allPayments, statusFilter]);
+    let list = statusFilter === "all" ? allPayments : allPayments.filter((p) => p.status === statusFilter);
+    list = [...list].sort((a, b) =>
+      sortDir === "desc" ? b.created_at - a.created_at : a.created_at - b.created_at,
+    );
+    return list;
+  }, [allPayments, statusFilter, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
 
@@ -73,7 +78,7 @@ export default function PaymentsPage() {
             {filtered.length} txns
           </span>
           <span className="text-sm">
-            Net: <span className="font-semibold">{formatRupees(netAmount)}</span>
+            Total Revenue: <span className="font-semibold">{formatRupees(netAmount)}</span>
           </span>
         </div>
       </div>
@@ -108,10 +113,18 @@ export default function PaymentsPage() {
               <th className="hidden md:table-cell px-4 py-3 font-medium">ID</th>
               <th className="px-4 py-3 font-medium">Amount</th>
               <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Method</th>
+              <th className="hidden md:table-cell px-4 py-3 font-medium">Method</th>
               <th className="hidden md:table-cell px-4 py-3 font-medium">Contact</th>
-              <th className="hidden md:table-cell px-4 py-3 font-medium">Email</th>
-              <th className="px-4 py-3 font-medium">Date</th>
+              <th className="px-4 py-3 font-medium">RRN</th>
+              <th className="px-4 py-3 font-medium">
+                <button
+                  onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  Date
+                  <ArrowUpDown className={cn("size-3.5 transition-transform", sortDir === "asc" && "rotate-180")} />
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -146,9 +159,9 @@ export default function PaymentsPage() {
                       {p.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 capitalize">{p.method ?? "—"}</td>
+                  <td className="hidden md:table-cell px-4 py-3 capitalize">{p.method ?? "—"}</td>
                   <td className="hidden md:table-cell px-4 py-3 font-mono text-xs">{p.contact ?? "—"}</td>
-                  <td className="hidden md:table-cell px-4 py-3 text-xs">{p.email ?? "—"}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{p.acquirer_data?.rrn ?? "—"}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     {new Date(p.created_at * 1000).toLocaleString("en-IN", {
                       day: "2-digit", month: "2-digit", year: "numeric",
@@ -203,6 +216,11 @@ export default function PaymentsPage() {
               <DetailRow label="Description" value={selected.description} />
               <DetailRow label="Order ID" value={selected.order_id} />
               <DetailRow label="Invoice ID" value={selected.invoice_id} />
+              <DetailRow label="RRN" value={selected.acquirer_data?.rrn} />
+              <DetailRow label="UPI Transaction ID" value={selected.acquirer_data?.upi_transaction_id} />
+              <DetailRow label="UPI Payer Account" value={selected.acquirer_data?.upi?.payer_account_type} />
+              <DetailRow label="VPA" value={selected.vpa ?? selected.acquirer_data?.upi?.vpa} />
+              <DetailRow label="Wallet" value={selected.wallet} />
               <DetailRow label="Card ID" value={selected.card_id} />
               <DetailRow label="Bank" value={selected.bank} />
               <DetailRow label="Fee" value={selected.fee != null ? formatRupees(selected.fee) : "—"} />

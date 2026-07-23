@@ -24,7 +24,7 @@ import { useEffect, useState } from "react";
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { label: "Appointments", href: "/dashboard/appointments", icon: ClipboardList },
-  { label: "Stats", href: "/dashboard/stats", icon: BarChart3 },
+  // { label: "Stats", href: "/dashboard/stats", icon: BarChart3 }, // hidden for now
   { label: "Payments", href: "/dashboard/payments", icon: Wallet },
 ];
 

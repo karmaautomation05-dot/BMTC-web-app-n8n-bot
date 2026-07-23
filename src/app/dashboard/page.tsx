@@ -1,8 +1,8 @@
 "use client";
 
-import { CalendarDays, ClipboardList, Users, PhoneIncoming, PhoneOutgoing, Phone, PhoneMissed, MessageCircle, Send, CheckCheck, Eye } from "lucide-react";
-import { useStats, useCallLogs, useChatStats } from "@/hooks/use-api";
-import { DoctorCard } from "@/components/doctor-card";
+import { CalendarDays, ClipboardList, Users, Stethoscope } from "lucide-react";
+import { useStats } from "@/hooks/use-api";
+import { cn } from "@/lib/utils";
 
 const doctors = [
   "Dr. Gaurav Bhargava",
@@ -10,86 +10,112 @@ const doctors = [
   "Dr. R R Bhargava",
 ];
 
-const mainCards = [
-  { label: "Today's Appointments", key: "todayAppointments" as const, icon: CalendarDays, color: "text-blue-500" },
-  { label: "Total Appointments", key: "totalAppointments" as const, icon: ClipboardList, color: "text-emerald-500" },
-  { label: "Total Patients", key: "totalPatient" as const, icon: Users, color: "text-violet-500" },
+const doctorGradients = [
+  { from: "from-blue-500", to: "to-blue-600", badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300" },
+  { from: "from-emerald-500", to: "to-emerald-600", badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
+  { from: "from-violet-500", to: "to-violet-600", badge: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300" },
 ];
 
-const callCards = [
-  { label: "Total", key: "total" as const, icon: Phone, color: "text-blue-500" },
-  { label: "Inbound", key: "inbound" as const, icon: PhoneIncoming, color: "text-emerald-500" },
-  { label: "Outbound", key: "outbound" as const, icon: PhoneOutgoing, color: "text-blue-600" },
-  { label: "Answered", key: "answered" as const, icon: Phone, color: "text-emerald-500" },
-  { label: "Missed", key: "missed" as const, icon: PhoneMissed, color: "text-red-500" },
-];
-
-const chatCards = [
-  { label: "Inbound", key: "inbound" as const, icon: MessageCircle, color: "text-blue-500" },
-  { label: "Outbound", key: "outbound" as const, icon: Send, color: "text-orange-500" },
-  { label: "Sent", key: "sent" as const, icon: Send, color: "text-emerald-500" },
-  { label: "Delivered", key: "delivered" as const, icon: CheckCheck, color: "text-purple-500" },
-  { label: "Read", key: "read" as const, icon: Eye, color: "text-cyan-500" },
-];
-
-function StatGrid({ cards, data, isLoading, cols = "5" }: {
-  cards: { label: string; key: string; icon: React.ComponentType<{ className?: string }>; color: string }[];
-  data: Record<string, unknown> | null | undefined;
-  isLoading: boolean;
-  cols?: "3" | "5";
-}) {
-  const gridCols = cols === "3" ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2 md:grid-cols-5";
-  if (isLoading) {
-    return (
-      <div className={`grid ${gridCols} gap-3`}>
-        {Array.from({ length: cards.length }).map((_, i) => (
-          <div key={i} className="rounded-xl border bg-card p-4 flex flex-col gap-2 animate-pulse">
-            <div className="h-4 w-16 bg-muted rounded" />
-            <div className="h-7 w-20 bg-muted rounded" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <div className={`grid ${gridCols} gap-3`}>
-      {cards.map((card) => {
-        const Icon = card.icon;
-        const val = (data?.[card.key] as number) ?? 0;
-        return (
-          <div key={card.key} className="rounded-xl border bg-card p-4 flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Icon className={cn("size-4 shrink-0", card.color)} />
-              <span className="truncate">{card.label}</span>
-            </div>
-            <span className="text-2xl font-bold tabular-nums">
-              {val.toLocaleString("en-IN")}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter((w) => !w.startsWith("Dr"))
+    .map((w) => w[0])
+    .join("");
 }
 
-import { cn } from "@/lib/utils";
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function formatDate() {
+  return new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+const statCards = [
+  { label: "Today's Appointments", key: "todayAppointments" as const, icon: CalendarDays, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/30" },
+  { label: "Total Appointments", key: "totalAppointments" as const, icon: ClipboardList, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/30" },
+  { label: "Total Patients", key: "totalPatient" as const, icon: Users, color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-950/30" },
+];
 
 export default function DashboardPage() {
   const { data: stats, isLoading } = useStats();
-  const { data: callData, isLoading: callLoading } = useCallLogs({ limit: "1" });
-  const { data: chatData, isLoading: chatLoading } = useChatStats();
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-row gap-3 items-start">
-        {doctors.map((name, i) => (
-          <DoctorCard key={name} name={name} index={i} />
-        ))}
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{getGreeting()}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{formatDate()}</p>
       </div>
 
-      <StatGrid cards={mainCards} data={stats as unknown as Record<string, unknown> | null} isLoading={isLoading} cols="3" />
+      {/* Doctors */}
+      <section>
+        <div className="flex items-center gap-2 mb-4">
+          <Stethoscope className="size-4 text-muted-foreground" />
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Consultants</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {doctors.map((name, i) => {
+            const g = doctorGradients[i];
+            return (
+              <div key={name} className="rounded-xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm transition-shadow">
+                <div className={cn("flex size-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-white text-sm font-bold shadow-sm", g.from, g.to)}>
+                  {getInitials(name)}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm truncate">{name}</p>
+                  <span className={cn("inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium", g.badge)}>
+                    Available
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
+      {/* Stats */}
+      <section>
+        <div className="flex items-center gap-2 mb-4">
+          <ClipboardList className="size-4 text-muted-foreground" />
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Overview</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {statCards.map((card) => {
+            const Icon = card.icon;
+            const val = (stats?.[card.key] as number) ?? 0;
+            return (
+              <div
+                key={card.key}
+                className={cn("rounded-xl border p-5 flex items-center gap-4 transition-shadow hover:shadow-sm", card.bg)}
+              >
+                <div className={cn("flex size-11 items-center justify-center rounded-lg bg-background shadow-xs", card.color)}>
+                  <Icon className="size-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">{card.label}</p>
+                  {isLoading ? (
+                    <div className="h-6 w-16 bg-muted rounded mt-1 animate-pulse" />
+                  ) : (
+                    <p className="text-xl font-bold tabular-nums">{val.toLocaleString("en-IN")}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Call Logs — hidden for now, uncomment to restore
       <div>
         <h2 className="text-lg font-semibold tracking-tight mb-3">Call Logs</h2>
         <StatGrid cards={callCards} data={callData?.stats as Record<string, unknown> | undefined} isLoading={callLoading} />
@@ -99,6 +125,7 @@ export default function DashboardPage() {
         <h2 className="text-lg font-semibold tracking-tight mb-3">Chat Stats</h2>
         <StatGrid cards={chatCards} data={chatData as unknown as Record<string, unknown> | null} isLoading={chatLoading} />
       </div>
+      */}
     </div>
   );
 }

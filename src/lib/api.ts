@@ -108,6 +108,17 @@ export interface RazorpayPayment {
   bank: string | null;
   order_id: string | null;
   invoice_id: string | null;
+  vpa: string | null;
+  wallet: string | null;
+  acquirer_data: {
+    rrn?: string | null;
+    bank_transaction_id?: string | null;
+    upi_transaction_id?: string | null;
+    upi?: {
+      payer_account_type?: string | null;
+      vpa?: string | null;
+    } | null;
+  } | null;
 }
 
 export interface RazorpayPaymentsResponse {
