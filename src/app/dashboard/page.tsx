@@ -56,7 +56,7 @@ export default function DashboardPage() {
       <section>
         <div className="flex items-center gap-2 mb-4">
           <Stethoscope className="size-4 text-muted-foreground" />
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Consultants</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Doctors</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {doctors.map((doc, i) => {
