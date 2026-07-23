@@ -7,19 +7,14 @@ import { login } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const [token, setTokenState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const setToken = useAuth((s) => s.setToken);
+  const { token, setToken, hydrate } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const stored = localStorage.getItem("token");
-    if (stored) {
-      setToken(stored);
-      setTokenState(stored);
-    }
+    hydrate();
     setLoading(false);
-  }, [setToken]);
+  }, [hydrate]);
 
   if (loading) {
     return (
@@ -30,7 +25,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!token) {
-    return <InlineLogin onLogin={(t) => { setTokenState(t); setToken(t); router.push("/dashboard"); }} />;
+    return <InlineLogin onLogin={(t) => { setToken(t); router.push("/dashboard"); }} />;
   }
 
   return <>{children}</>;
