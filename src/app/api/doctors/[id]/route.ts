@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAuth } from "@/lib/auth";
 
+const WEBHOOK_URL = "https://n8n.srv1806268.hstgr.cloud/webhook/dac5d879-38b7-4f2f-8ed0-3254ceb1c5df";
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -25,6 +27,26 @@ export async function PATCH(
       where: { id: doctorId },
       data: { notAvailableDate },
     });
+
+    const webhookRes = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        doctorName: doctor.name,
+        notAvailableDate: body.notAvailableDate ?? null,
+      }),
+    });
+
+    if (!webhookRes.ok) {
+      await prisma.doctor.update({
+        where: { id: doctorId },
+        data: { notAvailableDate: null },
+      });
+      return NextResponse.json(
+        { error: `Webhook failed with status ${webhookRes.status}: ${await webhookRes.text()}` },
+        { status: 502 },
+      );
+    }
 
     return NextResponse.json({
       data: { ...doctor, notAvailableDate: doctor.notAvailableDate?.toISOString() ?? null },

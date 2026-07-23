@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, ClipboardList, Users, Stethoscope } from "lucide-react";
+import { CalendarDays, ClipboardList, Users, Stethoscope, ArrowUpRight } from "lucide-react";
 import { useStats, useDoctors } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 
@@ -56,7 +56,7 @@ export default function DashboardPage() {
       <section>
         <div className="flex items-center gap-2 mb-4">
           <Stethoscope className="size-4 text-muted-foreground" />
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Consultants</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Doctors</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {doctors.map((doc, i) => {
@@ -94,15 +94,23 @@ export default function DashboardPage() {
           {statCards.map((card) => {
             const Icon = card.icon;
             const val = (stats?.[card.key] as number) ?? 0;
-            return (
+            const href = card.key === "todayAppointments"
+              ? "/dashboard/appointments"
+              : card.key === "totalAppointments"
+              ? "/dashboard/appointments?filter=all"
+              : null;
+            const inner = (
               <div
-                key={card.key}
-                className={cn("rounded-xl border p-5 flex items-center gap-4 transition-shadow hover:shadow-sm", card.bg)}
+                className={cn(
+                  "rounded-xl border p-5 flex items-center gap-4 transition-shadow hover:shadow-sm relative",
+                  href && "hover:border-primary/50 cursor-pointer",
+                  card.bg,
+                )}
               >
                 <div className={cn("flex size-11 items-center justify-center rounded-lg bg-background shadow-xs", card.color)}>
                   <Icon className="size-5" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-xs text-muted-foreground">{card.label}</p>
                   {isLoading ? (
                     <div className="h-6 w-16 bg-muted rounded mt-1 animate-pulse" />
@@ -110,8 +118,10 @@ export default function DashboardPage() {
                     <p className="text-xl font-bold tabular-nums">{val.toLocaleString("en-IN")}</p>
                   )}
                 </div>
+                {href && <ArrowUpRight className="size-4 text-muted-foreground/40 shrink-0" />}
               </div>
             );
+            return href ? <Link key={card.key} href={href}>{inner}</Link> : <div key={card.key}>{inner}</div>;
           })}
         </div>
       </section>

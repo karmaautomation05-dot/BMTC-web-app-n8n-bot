@@ -12,18 +12,18 @@ export async function GET(req: NextRequest) {
     const endOfDay = new Date(startOfDay);
     endOfDay.setDate(endOfDay.getDate() + 1);
 
-    const [todayAppointments, totals] = await Promise.all([
+    const [todayAppointments, totalAppointments, totalPatient] = await Promise.all([
       prisma.appointment.count({
         where: { timestamp: { gte: startOfDay, lt: endOfDay } },
       }),
-      prisma.totals.findFirst(),
+      prisma.appointment.count(),
+      prisma.patient.count(),
     ]);
 
     return NextResponse.json({
       todayAppointments,
-      totalAppointments: totals?.totalAppointments ?? 0,
-      totalPatient: totals?.totalPatient ?? 0,
-      totalRevenue: totals?.totalRevenue ?? 0,
+      totalAppointments,
+      totalPatient,
     });
   } catch (err) {
     console.error("Stats error:", err);

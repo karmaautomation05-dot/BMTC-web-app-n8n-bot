@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Calendar, IndianRupee, Clock, ArrowLeft, Stethoscope, Hash } from "lucide-react";
 import { fmt, fmtDate } from "@/lib/utils";
@@ -38,15 +38,21 @@ export default function DoctorDetailPage() {
   const appointments = aptData?.data ?? [];
   const totalPages = aptData?.pagination?.totalPages ?? 1;
 
+  const [error, setError] = useState<string | null>(null);
+
   const updateDoctor = useUpdateDoctor();
 
   const notAvailDate = doctor?.notAvailableDate
     ? new Date(doctor.notAvailableDate).toISOString().split("T")[0]
     : "";
 
-  const handleDateChange = (val: string) => {
-    updateDoctor.mutate({ id: doctorId, data: { notAvailableDate: val || null } });
-  };
+  const handleDateChange = useCallback((val: string) => {
+    setError(null);
+    updateDoctor.mutate(
+      { id: doctorId, data: { notAvailableDate: val || null } },
+      { onError: (e) => setError((e as Error).message) },
+    );
+  }, [doctorId, updateDoctor]);
 
   if (!doctor) return null;
 
@@ -96,6 +102,9 @@ export default function DoctorDetailPage() {
             </button>
           )}
         </div>
+        {error && (
+          <p className="text-xs text-red-500 pt-1">{error}</p>
+        )}
       </div>
 
       <h2 className="text-lg font-semibold tracking-tight">Appointments</h2>
