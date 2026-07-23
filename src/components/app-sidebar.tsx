@@ -111,7 +111,6 @@ export function AppSidebar() {
 
   return (
     <>
-      {/* Mobile header */}
       <header className="lg:hidden fixed top-0 inset-x-0 z-40 flex items-center gap-3 h-14 px-4 border-b bg-sidebar">
         <button
           onClick={() => setMobileOpen(true)}
@@ -122,7 +121,6 @@ export function AppSidebar() {
         <span className="font-bold text-lg tracking-tight">BMTC</span>
       </header>
 
-      {/* Mobile overlay */}
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
           <div
@@ -143,7 +141,6 @@ export function AppSidebar() {
         </div>
       )}
 
-      {/* Desktop sidebar */}
       <aside
         className={cn(
           "hidden lg:flex h-screen sticky top-0 bg-sidebar border-r border-sidebar-border flex-col transition-all duration-200",
