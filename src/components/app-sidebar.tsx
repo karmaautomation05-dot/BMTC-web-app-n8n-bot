@@ -12,6 +12,8 @@ import {
   Wallet,
   BarChart3,
   ClipboardList,
+  User,
+  Stethoscope,
   LogOut,
   ChevronLeft,
   Moon,
@@ -24,7 +26,9 @@ import { useEffect, useState } from "react";
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { label: "Appointments", href: "/dashboard/appointments", icon: ClipboardList },
-  // { label: "Stats", href: "/dashboard/stats", icon: BarChart3 }, // hidden for now
+  { label: "Doctors", href: "/dashboard/doctors", icon: Stethoscope },
+  // { label: "Patients", href: "/dashboard/patients", icon: User },
+  // { label: "Stats", href: "/dashboard/stats", icon: BarChart3 },
   { label: "Payments", href: "/dashboard/payments", icon: Wallet },
 ];
 

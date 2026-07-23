@@ -1,14 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { CalendarDays, ClipboardList, Users, Stethoscope } from "lucide-react";
-import { useStats } from "@/hooks/use-api";
+import { useStats, useDoctors } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
-
-const doctors = [
-  "Dr. Gaurav Bhargava",
-  "Dr. Priyanka Bhargava",
-  "Dr. R R Bhargava",
-];
 
 const doctorGradients = [
   { from: "from-blue-500", to: "to-blue-600", badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300" },
@@ -48,42 +43,48 @@ const statCards = [
 
 export default function DashboardPage() {
   const { data: stats, isLoading } = useStats();
+  const { data: doctorsData } = useDoctors();
+  const doctors = doctorsData?.data ?? [];
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{getGreeting()}</h1>
         <p className="text-sm text-muted-foreground mt-1">{formatDate()}</p>
       </div>
 
-      {/* Doctors */}
       <section>
         <div className="flex items-center gap-2 mb-4">
           <Stethoscope className="size-4 text-muted-foreground" />
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Consultants</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {doctors.map((name, i) => {
+          {doctors.map((doc, i) => {
             const g = doctorGradients[i];
+            const isUnavailable = doc.notAvailableDate
+              ? new Date(doc.notAvailableDate).toDateString() === new Date().toDateString()
+              : false;
             return (
-              <div key={name} className="rounded-xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm transition-shadow">
+              <Link
+                key={doc.id}
+                href={`/dashboard/doctors/${doc.id}`}
+                className="rounded-xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm transition-shadow"
+              >
                 <div className={cn("flex size-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-white text-sm font-bold shadow-sm", g.from, g.to)}>
-                  {getInitials(name)}
+                  {getInitials(doc.name)}
                 </div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-sm truncate">{name}</p>
-                  <span className={cn("inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium", g.badge)}>
-                    Available
+                  <p className="font-semibold text-sm truncate">{doc.name.replace("Dr. ", "")}</p>
+                  <span className={cn("inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium", isUnavailable ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" : g.badge)}>
+                    {isUnavailable ? "Not Available" : "Available"}
                   </span>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
       </section>
 
-      {/* Stats */}
       <section>
         <div className="flex items-center gap-2 mb-4">
           <ClipboardList className="size-4 text-muted-foreground" />
@@ -114,18 +115,6 @@ export default function DashboardPage() {
           })}
         </div>
       </section>
-
-      {/* Call Logs — hidden for now, uncomment to restore
-      <div>
-        <h2 className="text-lg font-semibold tracking-tight mb-3">Call Logs</h2>
-        <StatGrid cards={callCards} data={callData?.stats as Record<string, unknown> | undefined} isLoading={callLoading} />
-      </div>
-
-      <div>
-        <h2 className="text-lg font-semibold tracking-tight mb-3">Chat Stats</h2>
-        <StatGrid cards={chatCards} data={chatData as unknown as Record<string, unknown> | null} isLoading={chatLoading} />
-      </div>
-      */}
     </div>
   );
 }

@@ -119,6 +119,7 @@ export interface RazorpayPayment {
       vpa?: string | null;
     } | null;
   } | null;
+  [key: string]: unknown;
 }
 
 export interface RazorpayPaymentsResponse {
@@ -168,3 +169,62 @@ export const getAppointments = (params: Record<string, string> = {}) => {
   const qs = new URLSearchParams(params).toString();
   return request<PaginatedResponse<Appointment>>(`/appointments${qs ? "?" + qs : ""}`);
 };
+
+// --- Patients ---
+
+export interface Patient {
+  id: number;
+  name: string;
+  phone: string;
+  firstVisit: string;
+  lastVisit: string;
+  _count: { appointments: number };
+}
+
+export const getPatients = (params: Record<string, string> = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return request<PaginatedResponse<Patient>>(`/patients${qs ? "?" + qs : ""}`);
+};
+
+export interface PatientAppointment extends Appointment {
+  doctor: { id: number; name: string };
+}
+
+export const getPatientAppointments = (patientId: number) =>
+  request<{ data: PatientAppointment[] }>(`/patients/${patientId}/appointments`);
+
+// --- Doctors ---
+
+export interface Doctor {
+  id: number;
+  name: string;
+  notAvailableDate: string | null;
+  _count: { appointments: number };
+  todayAppointments: number;
+}
+
+export interface DoctorAppointment {
+  id: number;
+  appointmentId: string;
+  patientName: string;
+  location: string;
+  timestamp: string;
+  timeSlot: string;
+  phone: string;
+  fees: number;
+  patient: { id: number; name: string; phone: string };
+}
+
+export const getDoctors = () =>
+  request<{ data: Doctor[] }>("/doctors");
+
+export const getDoctorAppointments = (doctorId: number, params: Record<string, string> = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return request<PaginatedResponse<DoctorAppointment>>(`/doctors/${doctorId}/appointments${qs ? "?" + qs : ""}`);
+};
+
+export const updateDoctor = (doctorId: number, data: { notAvailableDate: string | null }) =>
+  request<{ data: Doctor }>(`/doctors/${doctorId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });

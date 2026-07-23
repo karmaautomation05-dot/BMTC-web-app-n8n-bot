@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { IndianRupee, ClipboardList, Clock, User, Phone, MapPin, Stethoscope, Search, CalendarDays, Filter } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, fmt, fmtDate } from "@/lib/utils";
 import { useAppointments } from "@/hooks/use-api";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Appointment } from "@/lib/api";
@@ -97,7 +97,7 @@ export default function AppointmentsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-muted/50 border-b text-left text-muted-foreground">
-              <th className="px-4 py-3 font-medium">ID</th>
+              <th className="px-4 py-3 font-medium">Appointment ID</th>
               <th className="px-4 py-3 font-medium">Patient</th>
               <th className="px-4 py-3 font-medium">Doctor</th>
               <th className="hidden md:table-cell px-4 py-3 font-medium">Slot</th>
@@ -135,12 +135,8 @@ export default function AppointmentsPage() {
                   <td className="px-4 py-3 font-medium">{formatRupees(a.fees)}</td>
                   <td className="hidden md:table-cell px-4 py-3 font-mono text-xs">{a.phone === "-" ? "—" : a.phone}</td>
                   <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
-                    {(() => {
-                      const d = new Date(a.timestamp);
-                      const date = d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
-                      const time = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false });
-                      return <><span className="hidden md:inline">{date} </span><span>{time}</span></>;
-                    })()}
+                    <span className="hidden md:inline">{fmtDate(a.timestamp, { day: "2-digit", month: "short" })} </span>
+                    <span>{fmt(a.timestamp, { hour: "2-digit", minute: "2-digit", hour12: false })}</span>
                   </td>
                 </tr>
               ))
@@ -183,7 +179,7 @@ export default function AppointmentsPage() {
               <DetailRow label="Location" value={selected.location} />
               <DetailRow label="Fees" value={formatRupees(selected.fees)} />
               <DetailRow label="Phone" value={selected.phone === "-" ? "—" : selected.phone} />
-              <DetailRow label="Date & Time" value={new Date(selected.timestamp).toLocaleString("en-IN")} />
+              <DetailRow label="Date & Time" value={fmt(selected.timestamp)} />
               <DetailRow label="Razorpay Txn ID" value={selected.rzpTxnId} />
             </div>
           </DialogContent>
