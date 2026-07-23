@@ -10,9 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Wallet,
-  BarChart3,
   ClipboardList,
-  User,
   Stethoscope,
   LogOut,
   ChevronLeft,
@@ -23,7 +21,13 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const navItems = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: typeof LayoutDashboard;
+}
+
+const allNavItems: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { label: "Appointments", href: "/dashboard/appointments", icon: ClipboardList },
   { label: "Doctors", href: "/dashboard/doctors", icon: Stethoscope },
@@ -32,14 +36,25 @@ const navItems = [
   { label: "Payments", href: "/dashboard/payments", icon: Wallet },
 ];
 
+const roleNavItems: Record<string, NavItem[]> = {
+  doctor: allNavItems,
+  admin: allNavItems,
+  reception: allNavItems.filter((i) =>
+    ["/dashboard", "/dashboard/appointments", "/dashboard/payments"].includes(i.href)
+  ),
+};
+
 function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
   const pathname = usePathname();
   const { collapsed, toggle } = useSidebar();
+  const role = useAuth((s) => s.role) ?? "reception";
   const { logout } = useAuth();
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
+
+  const navItems = roleNavItems[role] ?? roleNavItems.reception;
 
   return (
     <>

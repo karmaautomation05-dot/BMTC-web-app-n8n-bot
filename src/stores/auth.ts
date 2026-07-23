@@ -1,26 +1,33 @@
 import { create } from "zustand";
 
+export type Role = "admin" | "doctor" | "reception";
+
 interface AuthState {
   token: string | null;
+  role: Role | null;
   hydrated: boolean;
-  setToken: (token: string) => void;
+  setSession: (token: string, role: Role) => void;
   hydrate: () => void;
   logout: () => void;
 }
 
 export const useAuth = create<AuthState>((set) => ({
   token: null,
+  role: null,
   hydrated: false,
-  setToken: (token) => {
+  setSession: (token, role) => {
     localStorage.setItem("token", token);
-    set({ token, hydrated: true });
+    localStorage.setItem("role", role);
+    set({ token, role, hydrated: true });
   },
   hydrate: () => {
     const token = localStorage.getItem("token");
-    set({ token, hydrated: true });
+    const role = localStorage.getItem("role") as Role | null;
+    set({ token, role, hydrated: true });
   },
   logout: () => {
     localStorage.removeItem("token");
-    set({ token: null });
+    localStorage.removeItem("role");
+    set({ token: null, role: null });
   },
 }));

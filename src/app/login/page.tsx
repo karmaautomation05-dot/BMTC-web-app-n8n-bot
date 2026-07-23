@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/stores/auth";
+import { useAuth, type Role } from "@/stores/auth";
 import { login } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const setToken = useAuth((s) => s.setToken);
+  const setSession = useAuth((s) => s.setSession);
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -20,7 +20,7 @@ export default function LoginPage() {
     setError("");
     try {
       const res = await login(username, password);
-      setToken(res.token);
+      setSession(res.token, res.role as Role);
       router.push("/dashboard");
     } catch {
       setError("Invalid credentials");

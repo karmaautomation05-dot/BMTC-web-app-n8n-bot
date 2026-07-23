@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/stores/auth";
+import { useAuth, type Role } from "@/stores/auth";
 import { login } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
-  const { token, setToken, hydrate } = useAuth();
+  const { token, setSession, hydrate } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -25,13 +25,13 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!token) {
-    return <InlineLogin onLogin={(t) => { setToken(t); router.push("/dashboard"); }} />;
+    return <InlineLogin onLogin={(t, r) => { setSession(t, r as Role); router.push("/dashboard"); }} />;
   }
 
   return <>{children}</>;
 }
 
-function InlineLogin({ onLogin }: { onLogin: (token: string) => void }) {
+function InlineLogin({ onLogin }: { onLogin: (token: string, role: string) => void }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -43,7 +43,7 @@ function InlineLogin({ onLogin }: { onLogin: (token: string) => void }) {
     setError("");
     try {
       const res = await login(username, password);
-      onLogin(res.token);
+      onLogin(res.token, res.role as Role);
     } catch {
       setError("Invalid credentials");
     } finally {

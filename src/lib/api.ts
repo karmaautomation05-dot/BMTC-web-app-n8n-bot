@@ -73,7 +73,7 @@ export interface PaginatedResponse<T> {
 // --- Auth ---
 
 export const login = (username: string, password: string) =>
-  request<{ token: string }>("/auth/login", {
+  request<{ token: string; role: string }>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
   });
