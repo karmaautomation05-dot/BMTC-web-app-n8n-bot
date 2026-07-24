@@ -1,5 +1,14 @@
 import { withSerwist } from "@serwist/turbopack";
 
 export default withSerwist({
-  // Your Next.js configuration
+  async headers() {
+    return [
+      {
+        source: "/((?!_next/static|_next/image|favicon|icons).*)",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+        ],
+      },
+    ];
+  },
 });
