@@ -1,10 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { SerwistProvider } from "@serwist/turbopack/react";
+
+const APP_NAME = "BMTC Dashboard";
+const APP_DESCRIPTION = "BMTC Clinic Management Dashboard";
 
 export const metadata: Metadata = {
-  title: "BMTC Dashboard",
-  description: "BMTC Clinic Management Dashboard",
+  applicationName: APP_NAME,
+  title: APP_NAME,
+  description: APP_DESCRIPTION,
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",
@@ -14,6 +19,9 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "BMTC",
+  },
+  formatDetection: {
+    telephone: false,
   },
 };
 
@@ -34,12 +42,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(r=>r.forEach(r=>r.unregister()))}`,
-          }}
-        />
+        <Providers>
+          <SerwistProvider swUrl="/serwist/sw.js">{children}</SerwistProvider>
+        </Providers>
       </body>
     </html>
   );
