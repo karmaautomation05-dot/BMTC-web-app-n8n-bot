@@ -42,6 +42,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="min-h-full flex flex-col">
+        <script dangerouslySetInnerHTML={{
+          __html: `(async()=>{if('serviceWorker'in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs){if(r.active?.scriptURL?.includes('/sw.js')){await r.unregister();}}const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k)))}})()`,
+        }} />
         <Providers>
           <SerwistProvider swUrl="/serwist/sw.js">{children}</SerwistProvider>
         </Providers>

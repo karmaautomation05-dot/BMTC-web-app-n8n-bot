@@ -4,6 +4,7 @@ self.addEventListener("activate", (e) => {
     Promise.all([
       clients.claim(),
       caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))),
+      self.registration.unregister(),
     ]),
   );
 });
