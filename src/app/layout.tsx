@@ -37,7 +37,7 @@ export default function RootLayout({
         <Providers>{children}</Providers>
         <script
           dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`,
+            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(r=>r.forEach(r=>r.unregister()))}`,
           }}
         />
       </body>
