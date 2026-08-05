@@ -82,6 +82,10 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ ok: true, ignored: true, reason: "message not found" });
     }
 
+    if (record.status === status) {
+      return NextResponse.json({ ok: true, ignored: true, reason: "status already set" });
+    }
+
     const updated = await prisma.messageHistory.update({
       where: { wamid },
       data: { status },
