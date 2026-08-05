@@ -82,6 +82,10 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ ok: true, ignored: true, reason: "message not found" });
     }
 
+    if (record.status === "read") {
+      return NextResponse.json({ ok: true, ignored: true, reason: "status is already read" });
+    }
+
     if (record.status === status) {
       return NextResponse.json({ ok: true, ignored: true, reason: "status already set" });
     }
