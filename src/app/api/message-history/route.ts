@@ -71,13 +71,14 @@ export async function GET(req: NextRequest) {
     const phone = searchParams.get("phone");
     const limit = Math.min(100, parseInt(searchParams.get("limit") || "50"));
     const offset = Math.max(0, parseInt(searchParams.get("offset") || "0"));
+    const order = searchParams.get("order") === "asc" ? "asc" : "desc";
 
     const where = phone ? { phoneNumber: phone } : {};
 
     const [data, total] = await Promise.all([
       prisma.messageHistory.findMany({
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy: { timestamp: order },
         take: limit,
         skip: offset,
       }),
