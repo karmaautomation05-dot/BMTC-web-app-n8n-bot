@@ -65,6 +65,35 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PATCH(req: NextRequest) {
+  try {
+    const { wamid, status, timestamp } = await req.json();
+
+    if (!wamid || !status) {
+      return NextResponse.json({ error: "wamid and status are required" }, { status: 400 });
+    }
+
+    if (status === "sent") {
+      return NextResponse.json({ ok: true, ignored: true, reason: "status 'sent' is ignored" });
+    }
+
+    const record = await prisma.messageHistory.findUnique({ where: { wamid } });
+    if (!record) {
+      return NextResponse.json({ ok: true, ignored: true, reason: "message not found" });
+    }
+
+    const updated = await prisma.messageHistory.update({
+      where: { wamid },
+      data: { status },
+    });
+
+    return NextResponse.json({ ok: true, updated: updated.id });
+  } catch (err) {
+    console.error("Message history PATCH error:", err);
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
