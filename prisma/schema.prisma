@@ -128,3 +128,31 @@ model ChatWebhook {
   rawPayload  Json
   createdAt   DateTime @default(now())
 }
+
+model MessageHistory {
+  id                  String  @id @default(uuid())
+  wamid               String  @unique
+  phoneNumber         String  @map("phone_number")
+  sender              String
+  messageType         String  @map("message_type")
+  content             String? @db.Text
+
+  // Stored as a JSON object instead of a raw string for better querying in Prisma
+  interactiveMetadata Json?   @map("interactive_metadata")
+
+  mediaId             String? @map("media_id")
+  mimeType            String? @map("mime_type")
+  status              String  @default("Sent")
+
+  // Kept as a String because your n8n code nodes output: Math.floor(...).toString()
+  timestamp           String
+
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  // Indexes for fast lookup by phone number (chat history) or wamid (status updates)
+  @@index([phoneNumber])
+  @@index([wamid])
+
+  // Ensures the database table is named exactly as expected
+  @@map("message_history")
+}
