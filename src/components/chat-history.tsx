@@ -175,7 +175,7 @@ function MessageBubble({ msg }: { msg: HistoryMessage }) {
         className={cn(
           "relative max-w-[85%] sm:max-w-[75%] rounded-[18px] px-3 py-2 text-[14.5px] leading-snug whitespace-pre-wrap break-words shadow-sm",
           outgoing
-            ? "bg-[#d9fdd3] text-[#111b21] rounded-tr-sm dark:bg-[#005c4b] dark:text-[#e9edef]"
+            ? "bg-[#264C38] text-white rounded-tr-sm"
             : "bg-white text-[#111b21] rounded-tl-sm dark:bg-[#202c33] dark:text-[#e9edef]",
         )}
       >
@@ -186,7 +186,7 @@ function MessageBubble({ msg }: { msg: HistoryMessage }) {
             {buttons.map((b) => (
               <div
                 key={b.id || b.title}
-                className="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-center text-[13px] font-medium text-[#0b141a] dark:border-white/10 dark:bg-[#0d2824] dark:text-[#e9edef]"
+                className="rounded-lg bg-[#f0f2f5] px-3 py-1.5 text-center text-[13px] font-medium text-[#111b21] shadow-sm dark:bg-[#1f2c33] dark:text-[#e9edef]"
               >
                 {b.title}
               </div>
@@ -198,7 +198,7 @@ function MessageBubble({ msg }: { msg: HistoryMessage }) {
           <div className="mt-2">
             <button
               onClick={() => setListOpen(true)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-[13px] font-medium text-[#0b141a] dark:border-white/10 dark:bg-[#0d2824] dark:text-[#e9edef]"
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#f0f2f5] px-3 py-1.5 text-[13px] font-medium text-[#111b21] shadow-sm dark:bg-[#1f2c33] dark:text-[#e9edef]"
             >
               <List className="size-3.5" />
               List
@@ -224,8 +224,8 @@ function MessageBubble({ msg }: { msg: HistoryMessage }) {
 
         <span
           className={cn(
-            "mt-1 flex items-center justify-end gap-1 text-[11px] opacity-70",
-            outgoing ? "text-[#53bdeb]" : "",
+            "mt-1 flex items-center justify-end gap-1 text-[11px]",
+            outgoing ? "text-white/75" : "text-[#54656f] opacity-70",
           )}
         >
           {formatTime(msg.timestamp)}
@@ -404,12 +404,7 @@ function ConversationView({ phone, onBack }: { phone: string; onBack?: () => voi
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto bg-[#efeae2] dark:bg-[#0b141a]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px)",
-          backgroundSize: "18px 18px",
-        }}
+        className="chat-bg flex-1 overflow-y-auto"
       >
         {loading ? (
           <ChatSkeleton />
