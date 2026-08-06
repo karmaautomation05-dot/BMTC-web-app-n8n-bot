@@ -137,15 +137,28 @@ export const getPayments = (params: Record<string, string> = {}) => {
 
 // --- Chat Stats ---
 
-export interface ChatStats {
+export interface ChatStatsRange {
   inbound: number;
   outbound: number;
   sent: number;
   delivered: number;
   read: number;
+  total: number;
 }
 
-export const getChatStats = () => request<ChatStats>("/chat-stats");
+export interface DailyStat {
+  date: string;
+  inbound: number;
+  outbound: number;
+}
+
+export interface ChatStats {
+  today: ChatStatsRange;
+  last30: ChatStatsRange;
+  daily: DailyStat[];
+}
+
+export const getChatStats = () => request<ChatStats>("/message-history/stats");
 
 // --- Appointments ---
 

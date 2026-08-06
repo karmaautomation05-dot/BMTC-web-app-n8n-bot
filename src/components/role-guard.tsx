@@ -6,7 +6,7 @@ import { useAuth, type Role } from "@/stores/auth";
 
 const rolePages: Record<Role, string[] | "*"> = {
   admin: "*",
-  doctor: "*",
+  doctor: ["/dashboard", "/dashboard/appointments", "/dashboard/doctors", "/dashboard/payments", "/dashboard/patients"],
   reception: ["/dashboard", "/dashboard/appointments", "/dashboard/payments"],
 };
 

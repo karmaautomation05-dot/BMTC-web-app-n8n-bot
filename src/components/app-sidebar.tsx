@@ -18,7 +18,7 @@ import {
   Sun,
   Menu,
   X,
-  MessageSquare,
+  BarChart3,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -33,13 +33,12 @@ const allNavItems: NavItem[] = [
   { label: "Appointments", href: "/dashboard/appointments", icon: ClipboardList },
   { label: "Doctors", href: "/dashboard/doctors", icon: Stethoscope },
   // { label: "Patients", href: "/dashboard/patients", icon: User },
-  // { label: "Stats", href: "/dashboard/stats", icon: BarChart3 },
+  { label: "Stats", href: "/dashboard/stats", icon: BarChart3 },
   { label: "Payments", href: "/dashboard/payments", icon: Wallet },
-  { label: "Chat History", href: "/dashboard/chat-history", icon: MessageSquare },
 ];
 
 const roleNavItems: Record<string, NavItem[]> = {
-  doctor: allNavItems,
+  doctor: allNavItems.filter((i) => i.href !== "/dashboard/stats"),
   admin: allNavItems,
   reception: allNavItems.filter((i) =>
     ["/dashboard", "/dashboard/appointments", "/dashboard/payments"].includes(i.href)

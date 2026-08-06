@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, MessageCircle, PhoneIncoming, PhoneOutgoing, PhoneMissed, Send, CheckCheck, Eye, Clock } from "lucide-react";
+import { Phone, MessageCircle, PhoneIncoming, PhoneOutgoing, PhoneMissed, CheckCheck, Eye, Clock, MessagesSquare, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCallLogs, useChatStats } from "@/hooks/use-api";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import type { CallLog } from "@/lib/api";
+import { ChatHistory } from "@/components/chat-history";
+import type { CallLog, ChatStatsRange, DailyStat } from "@/lib/api";
 
 const tabs = [
   { label: "Call", icon: Phone, value: "call" as const },
   { label: "Chat", icon: MessageCircle, value: "chat" as const },
+  { label: "Chat History", icon: MessagesSquare, value: "history" as const },
 ];
 
 const callCards = [
@@ -21,12 +23,109 @@ const callCards = [
 ];
 
 const chatCards = [
+  { label: "Total", key: "total" as const, icon: MessagesSquare, color: "text-emerald-500" },
   { label: "Inbound", key: "inbound" as const, icon: MessageCircle, color: "text-blue-500" },
-  { label: "Outbound", key: "outbound" as const, icon: Send, color: "text-orange-500" },
-  { label: "Sent", key: "sent" as const, icon: Send, color: "text-emerald-500" },
+  { label: "Sent", key: "sent" as const, icon: Send, color: "text-orange-500" },
   { label: "Delivered", key: "delivered" as const, icon: CheckCheck, color: "text-purple-500" },
   { label: "Read", key: "read" as const, icon: Eye, color: "text-cyan-500" },
 ];
+
+function StatGroup({ title, range, loading }: { title: string; range?: ChatStatsRange; loading: boolean }) {
+  return (
+    <div className="rounded-xl border bg-card p-4">
+      <h2 className="text-sm font-semibold mb-3">{title}</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        {chatCards.map((card) => {
+          const Icon = card.icon;
+          const val = (range?.[card.key] as number) ?? 0;
+          return (
+            <div key={card.key} className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Icon className={cn("size-4", card.color)} />
+                {card.label}
+              </div>
+              <span className="text-2xl font-bold tabular-nums">
+                {loading ? "—" : val.toLocaleString("en-IN")}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function DailyChart({ daily, className }: { daily: DailyStat[]; className?: string }) {
+  const max = Math.max(1, ...daily.map((d) => Math.max(d.inbound, d.outbound)));
+  const W = 920;
+  const H = 220;
+  const padL = 30;
+  const padB = 24;
+  const padT = 12;
+  const padR = 8;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const groupW = chartW / Math.max(1, daily.length);
+  const barW = Math.min(10, groupW / 3);
+  const gridLines = 4;
+  const y = (v: number) => padT + chartH - (v / max) * chartH;
+
+  return (
+    <div className={cn("flex flex-col", className)}>
+      <div className="mb-3 flex items-center gap-4">
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="size-2.5 rounded-sm bg-emerald-500" />
+          Inbound
+        </span>
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="size-2.5 rounded-sm bg-blue-500" />
+          Outbound
+        </span>
+      </div>
+      <div className="relative min-h-0 flex-1">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="xMidYMid meet"
+          className="absolute inset-0 h-full w-full"
+        >
+        {Array.from({ length: gridLines + 1 }).map((_, i) => {
+          const v = (max / gridLines) * i;
+          const gy = y(v);
+          return (
+            <g key={i}>
+              <line x1={padL} x2={W - padR} y1={gy} y2={gy} stroke="currentColor" strokeOpacity="0.1" />
+              <text x={padL - 6} y={gy + 3} textAnchor="end" className="fill-muted-foreground text-[10px]">
+                {Math.round(v)}
+              </text>
+            </g>
+          );
+        })}
+        {daily.map((d, i) => {
+          const cx = padL + i * groupW + groupW / 2;
+          const hIn = (d.inbound / max) * chartH;
+          const hOut = (d.outbound / max) * chartH;
+          const showLabel = i % 5 === 0 || i === daily.length - 1;
+          return (
+            <g key={d.date}>
+              <rect x={cx - barW - 1.5} y={y(d.inbound)} width={barW} height={Math.max(hIn, 1.5)} rx={2} className="fill-emerald-500/80">
+                <title>{`${d.date} · Inbound ${d.inbound}`}</title>
+              </rect>
+              <rect x={cx + 1.5} y={y(d.outbound)} width={barW} height={Math.max(hOut, 1.5)} rx={2} className="fill-blue-500/80">
+                <title>{`${d.date} · Outbound ${d.outbound}`}</title>
+              </rect>
+              {showLabel && (
+                <text x={cx} y={H - 6} textAnchor="middle" className="fill-muted-foreground text-[10px]">
+                  {Number(d.date.slice(8))}
+                </text>
+              )}
+            </g>
+          );
+        })}
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 function dirClass(d: string | null) {
   return d?.toLowerCase() ?? "";
@@ -68,7 +167,7 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 }
 
 export default function StatsPage() {
-  const [tab, setTab] = useState<"call" | "chat">("call");
+  const [tab, setTab] = useState<"call" | "chat" | "history">("call");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<CallLog | null>(null);
 
@@ -256,28 +355,25 @@ export default function StatsPage() {
       )}
 
       {tab === "chat" && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {chatLoading
-            ? Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="rounded-xl border bg-card p-4 flex flex-col gap-2 animate-pulse">
-                  <div className="h-4 w-16 bg-muted rounded" />
-                  <div className="h-7 w-20 bg-muted rounded" />
-                </div>
-              ))
-            : chatCards.map((card) => {
-                const Icon = card.icon;
-                const val = (chs?.[card.key] as number) ?? 0;
-                return (
-                  <div key={card.key} className="rounded-xl border bg-card p-4 flex flex-col gap-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Icon className={cn("size-4", card.color)} />
-                      {card.label}
-                    </div>
-                    <span className="text-2xl font-bold tabular-nums">{val.toLocaleString("en-IN")}</span>
-                  </div>
-                );
-              })}
+        <div className="space-y-4">
+          <div className="space-y-4">
+            <StatGroup title="Today" range={chs?.today} loading={chatLoading} />
+            <StatGroup title="Last 30 days" range={chs?.last30} loading={chatLoading} />
+          </div>
+
+          <div className="rounded-xl border bg-card p-4">
+            <h2 className="mb-3 text-sm font-semibold">Daily messages · last 30 days</h2>
+            {chatLoading ? (
+              <div className="h-64 animate-pulse rounded-lg bg-muted sm:h-80 lg:h-[26rem]" />
+            ) : (
+              <DailyChart daily={chs?.daily ?? []} className="h-64 sm:h-80 lg:h-[26rem]" />
+            )}
+          </div>
         </div>
+      )}
+
+      {tab === "history" && (
+        <ChatHistory className="h-[calc(100dvh-12rem)] min-h-[30rem]" />
       )}
     </div>
   );
