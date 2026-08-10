@@ -33,6 +33,7 @@ type MetaItem = { id?: string; title?: string };
 const CACHE_CONVERSATIONS = "bmtc-chat-conversations";
 const CACHE_CONVERSATIONS_AT = "bmtc-chat-conversations-at";
 const CACHE_MESSAGES_PREFIX = "bmtc-chat-messages-";
+const PAGE_SIZE = 100;
 
 function loadCache(key: string): HistoryMessage[] {
   try {
@@ -128,6 +129,21 @@ function parseMeta(meta: unknown): MetaItem[] | null {
 function snippet(msg: HistoryMessage) {
   if (msg.content) return msg.content.replace(/\s+/g, " ").trim();
   return `[${msg.messageType}]`;
+}
+
+function tsMs(m: HistoryMessage) {
+  const d = tsToDate(m.timestamp);
+  return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+}
+
+function mergeMessages(current: HistoryMessage[], incoming: HistoryMessage[]) {
+  const map = new Map<string, HistoryMessage>();
+  for (const m of current) map.set(m.wamid, m);
+  for (const m of incoming) {
+    const existing = map.get(m.wamid);
+    if (!existing || existing.status !== m.status) map.set(m.wamid, m);
+  }
+  return [...map.values()].sort((a, b) => tsMs(a) - tsMs(b));
 }
 
 function hasChanged(prev: HistoryMessage[], next: HistoryMessage[]) {
@@ -334,24 +350,41 @@ function ConversationView({ phone, onBack }: { phone: string; onBack?: () => voi
   const [msgs, setMsgs] = useState<HistoryMessage[]>(() => loadCache(cacheKey));
   const [loading, setLoading] = useState(msgs.length === 0);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMore, setHasMore] = useState(msgs.length >= PAGE_SIZE);
   const [updatedAt, setUpdatedAt] = useState<number | null>(() => {
     const raw = Number(localStorage.getItem(atKey));
     return Number.isFinite(raw) && raw > 0 ? raw : null;
   });
   const scrollRef = useRef<HTMLDivElement>(null);
+  const msgsRef = useRef(msgs);
+  const anchorRef = useRef<{ height: number; top: number } | null>(null);
+  const atBottomRef = useRef(true);
+
+  useEffect(() => {
+    msgsRef.current = msgs;
+  }, [msgs]);
 
   useEffect(() => {
     let active = true;
     let first = true;
     const load = () => {
       if (active) setRefreshing(true);
-      fetch(`/api/message-history?phone=${encodeURIComponent(phone)}&limit=200&order=asc`)
+      fetch(
+        `/api/message-history?phone=${encodeURIComponent(phone)}&limit=${PAGE_SIZE}&order=desc`,
+      )
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Request failed"))))
         .then((j) => {
           if (!active) return;
-          const next = j.data ?? [];
-          setMsgs((prev) => (hasChanged(prev, next) ? next : prev));
-          saveCache(cacheKey, next);
+          const latest = j.data ?? [];
+          const total = j.pagination?.total ?? latest.length;
+          const merged = mergeMessages(msgsRef.current, latest);
+          if (hasChanged(msgsRef.current, merged)) {
+            msgsRef.current = merged;
+            setMsgs(merged);
+            saveCache(cacheKey, merged);
+          }
+          setHasMore(merged.length < total);
           const now = Date.now();
           localStorage.setItem(atKey, String(now));
           setUpdatedAt(now);
@@ -377,8 +410,46 @@ function ConversationView({ phone, onBack }: { phone: string; onBack?: () => voi
 
   useEffect(() => {
     const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (!el) return;
+    if (anchorRef.current) {
+      const a = anchorRef.current;
+      el.scrollTop = el.scrollHeight - a.height + a.top;
+      anchorRef.current = null;
+      return;
+    }
+    if (atBottomRef.current) el.scrollTop = el.scrollHeight;
   }, [msgs]);
+
+  const loadOlder = () => {
+    if (loadingOlder || !hasMore) return;
+    setLoadingOlder(true);
+    const el = scrollRef.current;
+    anchorRef.current = el ? { height: el.scrollHeight, top: el.scrollTop } : null;
+    fetch(
+      `/api/message-history?phone=${encodeURIComponent(phone)}&limit=${PAGE_SIZE}&order=desc&offset=${msgsRef.current.length}`,
+    )
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Request failed"))))
+      .then((j) => {
+        const page = j.data ?? [];
+        const total = j.pagination?.total ?? msgsRef.current.length;
+        const merged = mergeMessages(msgsRef.current, page);
+        msgsRef.current = merged;
+        setMsgs(merged);
+        setHasMore(merged.length < total);
+        saveCache(cacheKey, merged);
+      })
+      .catch(() => {
+        anchorRef.current = null;
+      })
+      .finally(() => setLoadingOlder(false));
+  };
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    if (el.scrollTop < 60 && hasMore && !loadingOlder) loadOlder();
+  };
 
   return (
     <>
@@ -404,6 +475,7 @@ function ConversationView({ phone, onBack }: { phone: string; onBack?: () => voi
 
       <div
         ref={scrollRef}
+        onScroll={handleScroll}
         className="chat-bg flex-1 overflow-y-auto"
       >
         {loading ? (
@@ -414,6 +486,11 @@ function ConversationView({ phone, onBack }: { phone: string; onBack?: () => voi
           </div>
         ) : (
           <div className="flex flex-col gap-1.5 px-4 py-4">
+            {loadingOlder && (
+              <div className="flex justify-center py-1.5">
+                <Loader2 className="size-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
             {msgs.map((m, i) => {
               const day = formatDayLabel(m.timestamp);
               const prevDay = i > 0 ? formatDayLabel(msgs[i - 1].timestamp) : null;
